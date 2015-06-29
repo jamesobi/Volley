@@ -13,7 +13,20 @@ enum Direction {
 import UIKit
 
 class Projectile: CCSprite {
+    weak var flames:CCParticleSystem!
     
+    
+    
+    var isOnFire = false {
+        didSet {
+            if isOnFire {
+                flames.visible = true
+                speed = 15
+            } else {
+                flames.visible = false
+            }
+        }
+    }
     var direction:Direction = .Left {
         didSet {
             if direction == .Left {

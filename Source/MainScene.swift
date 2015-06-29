@@ -24,7 +24,7 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
     var projectileArray:[Projectile] = []
     let arrowSpeed = 4
     let iphoneWidth:CGFloat = CGFloat(600)
-    let scaleFactor = 40
+    let scaleFactor = 35
     var timeSinceStart:Double = 0.0
     var lives:[Bool] = []
     var gameOver:Bool = false
@@ -42,12 +42,20 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
     }
     
     func loadArrowAtLocationWithDirection(x:CGFloat, y: CGFloat, direction:Direction) {
+        
+        var random = arc4random_uniform(5)
+        
         var temporaryArrow = CCBReader.load("Projectile") as! Projectile
         temporaryArrow.position.x = x
         temporaryArrow.position.y = y
         
+        
         temporaryArrow.direction = direction
-        temporaryArrow.speed = CGFloat(arc4random_uniform(10))
+        temporaryArrow.speed = CGFloat(arc4random_uniform(6) + 3)
+        
+        if random == 4 {
+            temporaryArrow.isOnFire = true
+        }
         
         arrows.addChild(temporaryArrow)
         projectileArray.append(temporaryArrow)
@@ -81,12 +89,7 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
     }
     
     func shootBow() {
-        var temporaryArrow = CCBReader.load("Projectile") as! Projectile
-        temporaryArrow.position = attacker.position
-        temporaryArrow.direction = .Right
-        
-        projectileArray.append(temporaryArrow)
-        self.addChild(temporaryArrow)
+        loadArrowAtLocationWithDirection(attacker.position.x, y: attacker.position.y, direction: .Right)
         
     }
     
@@ -160,7 +163,10 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
             var arrowBox:CGRect = arrow.boundingBox()
             
             if CGRectIntersectsRect(defenderBox, arrowBox) {
-                if arrow.direction == .Left {
+                if arrow.isOnFire && arrow.direction == .Left {
+                    arrow.removeFromParent()
+                    projectileArray.removeAtIndex(i)
+                } else if arrow.direction == .Left {
                     arrow.direction = .Right
                     scoreLabel.string = "\(scoreLabel.string.toInt()! + 1)"
                 }
@@ -235,11 +241,11 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
             var points:Double = 568 / (4 * M_PI)
             var theta:Double = Double(touch.locationInWorld().x) / points
             
-            defender.position.x = CGFloat(108 * cos(theta) + 284.0)
+            defender.position.x = CGFloat(108 * cos(theta) + 184.0)
             defender.position.y = CGFloat(108 * sin(theta) + 144.0)
             
             var attackerTheta = M_PI + theta
-            attacker.position.x = CGFloat(108 * cos(attackerTheta) + 284.0)
+            attacker.position.x = CGFloat(108 * cos(attackerTheta) + 184.0)
             attacker.position.y = CGFloat(108 * sin(attackerTheta) + 144.0)
         }
         println("clicked!")
@@ -250,11 +256,11 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
             var points:Double = 568 / (4 * M_PI)
             var theta:Double = Double(touch.locationInWorld().x) / points
             
-            defender.position.x = CGFloat(108 * cos(theta) + 284.0)
+            defender.position.x = CGFloat(108 * cos(theta) + 184.0)
             defender.position.y = CGFloat(108 * sin(theta) + 144.0)
             
             var attackerTheta = M_PI + theta
-            attacker.position.x = CGFloat(108 * cos(attackerTheta) + 284.0)
+            attacker.position.x = CGFloat(108 * cos(attackerTheta) + 184.0)
             attacker.position.y = CGFloat(108 * sin(attackerTheta) + 144.0)
         }
         
