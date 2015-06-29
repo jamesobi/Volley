@@ -21,7 +21,7 @@ class Projectile: CCSprite {
         didSet {
             if isOnFire {
                 flames.visible = true
-                speed = 15
+                speed = 20
             } else {
                 flames.visible = false
             }

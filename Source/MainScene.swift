@@ -17,11 +17,14 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
     weak var heartThree:CCNode!
     weak var scoreLabel:CCLabelTTF!
     weak var attacker:CCSprite!
+    weak var sword:CCSprite!
     weak var timeTillNextShot:CCLabelTTF!
     weak var backgroundColor:CCNodeColor!
+    weak var door:CCSprite!
     //weak var gameOverScene:CCScene!
     
     var projectileArray:[Projectile] = []
+    var runnerArray:[CCSprite] = []
     let arrowSpeed = 4
     let iphoneWidth:CGFloat = CGFloat(600)
     let scaleFactor = 35
@@ -33,11 +36,13 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
     
     
     func didLoadFromCCB() {
+        //CCDirector.sharedDirector().presentScene(CCBReader.loadAsScene("Menu"))
         userInteractionEnabled = true
         loadRandomArrow()
         
-        
+        myPhysicsNode.collisionDelegate = self
         lives = [true, true, true]
+        loadRandomRunner()
         
     }
     
@@ -56,6 +61,8 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
         if random == 4 {
             temporaryArrow.isOnFire = true
         }
+        
+        temporaryArrow.physicsBody.collisionType = "projectile"
         
         arrows.addChild(temporaryArrow)
         projectileArray.append(temporaryArrow)
@@ -93,16 +100,72 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
         
     }
     
+    func trainRunner() {
+        var randomNumber:Int = Int(arc4random_uniform(7) + 1)
+        var yPosition = scaleFactor * randomNumber
+        
+        var temporaryRunner = CCBReader.load("Runner") as! CCSprite
+        temporaryRunner.position = ccp(door.position.x, door.position.y)
+        temporaryRunner.flipX = false
+        
+        arrows.addChild(temporaryRunner)
+        runnerArray.append(temporaryRunner)
+    }
+    
+    func loadRandomRunner() {
+        
+        println("Random Runner Spawned")
+        var randomNumber:Int = Int(arc4random_uniform(7) + 1)
+        var yPosition = scaleFactor * randomNumber
+        
+        var temporaryRunner = CCBReader.load("Runner") as! CCSprite
+        temporaryRunner.position = ccp(CGFloat(iphoneWidth + temporaryRunner.boundingBox().width ), CGFloat(yPosition))
+        
+        arrows.addChild(temporaryRunner)
+        runnerArray.append(temporaryRunner)
+        
+        
+    }
+    
+    func moveRunners() {
+        for var i = 0; i < runnerArray.count; i += 1 {
+            var runner = runnerArray[i]
+            if runner.position.y > 300 {
+                runner.position.y -= CGFloat(300)
+            }
+            
+            if runner.position.x < -10 {
+                runner.removeFromParent()
+                runnerArray.removeAtIndex(i)
+                println("runner made it across")
+                loseALife()
+            } else {
+                if runner.position.x > (iphoneWidth + runner.boundingBox().width) {
+                    runner.flipX = true
+                }
+                if runner.flipX {
+                    runner.position = ccp(runner.position.x - 5, runner.position.y)
+//                  println("---runners position---")
+//                  println(runner.position.x)
+//                  println(runner.position.y)
+                } else {
+                    runner.position = ccp(runner.position.x + 5, runner.position.y)
+                }
+                
+            }
+            
+        
+        }
+    }
+    
     
     override func update(delta: CCTime) {
         if !gameOver {
             moveArrows()
+            moveRunners()
             
             timeSinceStart += 1.0
             
-            
-            println("time since start\(timeSinceStart % 10)")
-            println("time divided\(timeDivided)")
             
             if timeSinceStart % 10 == 0 {
                 timeDivided += 1
@@ -111,6 +174,13 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
             
             if timeDivided % (10) == 0 {
                 shootBow()
+                timeDivided = 11
+                
+            }
+            
+            if timeDivided % 15 == 0 {
+                println()
+                trainRunner()
                 timeDivided = 1
             }
             
@@ -131,7 +201,7 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
             }
             lives.removeLast()
             
-            flash()
+            flash(CCColor.orangeColor())
             
             backgroundColor.visible = true
             
@@ -145,7 +215,8 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
         }
     }
     
-    func flash() {
+    func flash(color: CCColor) {
+        backgroundColor.color = color
         var sequence = CCActionSequence(array: [CCActionFadeIn(duration: 0.2), CCActionFadeOut(duration: 0.2), CCActionFadeIn(duration: 0.2), CCActionFadeOut(duration: 0.2)])
         backgroundColor.runAction(sequence)
         
@@ -158,19 +229,6 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
                 arrow.position.y -= CGFloat(300)
             }
             
-            var defenderBox:CGRect = defender.boundingBox()
-            
-            var arrowBox:CGRect = arrow.boundingBox()
-            
-            if CGRectIntersectsRect(defenderBox, arrowBox) {
-                if arrow.isOnFire && arrow.direction == .Left {
-                    arrow.removeFromParent()
-                    projectileArray.removeAtIndex(i)
-                } else if arrow.direction == .Left {
-                    arrow.direction = .Right
-                    scoreLabel.string = "\(scoreLabel.string.toInt()! + 1)"
-                }
-            }
             if arrow.position.x < -10 && arrow.direction == .Left {
                 arrow.removeFromParent()
                 projectileArray.removeAtIndex(i)
@@ -185,15 +243,44 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
         }
     }
     
-    func ccPhysicsCollisionBegin(pair: CCPhysicsCollisionPair!, defenderType defender: CCNode!, projectile arrow: Projectile!) -> ObjCBool {
-        triggerGameOver()
-        arrow.rotation = 90
-        arrow.direction = .Right
+    
+    
+    func ccPhysicsCollisionBegin(pair: CCPhysicsCollisionPair!, defenderType: CCNode!, projectile: CCNode!) -> ObjCBool {
+        println("collision detected")
+        var newProjectile = projectile as! Projectile
         
-        
+        if newProjectile.direction == .Left {
+            if newProjectile.isOnFire {
+                var index = find(projectileArray, newProjectile)
+                projectileArray.removeAtIndex(index!)
+                newProjectile.removeFromParent()
+                scoreLabel.string = "\(scoreLabel.string.toInt()! + 4)"
+            }
+            newProjectile.rotation = 90
+            newProjectile.direction = .Right
+            scoreLabel.string = "\(scoreLabel.string.toInt()! + 1)"
+        }
+        return true
+    }
+    
+    func ccPhysicsCollisionBegin(pair: CCPhysicsCollisionPair!, sword: CCNode!, runner: CCNode!) -> ObjCBool {
+        println("runner collision detected")
+        var newRunner = runner as! CCSprite
+        if newRunner.flipX {
+            var index = find(runnerArray, newRunner)
+            runner.removeFromParent()
+            runnerArray.removeAtIndex(index!)
+        }
         
         return true
     }
+    
+    
+    
+//    func ccPhysicsCollisionBegin(pair: CCPhysicsCollisionPair!, defenderType nodeA: CCNode!, projectile nodeB: CCNode!) -> ObjCBool {
+//        
+//        return true
+//    }
     
     /*func ccPhysicsCollisionBegin(pair: CCPhysicsCollisionPair!, defender: CCSprite!, projectile: Projectile!) -> ObjCBool {
         triggerGameOver()
@@ -231,6 +318,7 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
         println("game over in main scene called")
     }
     
+    
     override func touchBegan(touch: CCTouch!, withEvent event: CCTouchEvent!) {
       //  super.touchesBegan(CCTouch(), withEvent: event)
         //if touch.locationInWorld().y > (defender.boundingBox().height / 2.0) && touch.locationInWorld().y < (320.0 - (defender.boundingBox().height / 2.0)) {
@@ -244,13 +332,25 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
             defender.position.x = CGFloat(108 * cos(theta) + 184.0)
             defender.position.y = CGFloat(108 * sin(theta) + 144.0)
             
-            var attackerTheta = M_PI + theta
+            var attackerTheta = (1) * M_PI + theta
             attacker.position.x = CGFloat(108 * cos(attackerTheta) + 184.0)
             attacker.position.y = CGFloat(108 * sin(attackerTheta) + 144.0)
+            
+            var swordTheta = (1/2) * M_PI + theta
+            sword.position.x = CGFloat(108 * cos(swordTheta) + 184.0)
+            sword.position.y = CGFloat(108 * sin(swordTheta) + 144.0)
+            
+            var doorTheta = (3/2) * M_PI + theta
+            //println(door.position.x)
+            
+            door.position.x = CGFloat(108 * cos(doorTheta) + 184.0)
+            door.position.y = CGFloat(108 * sin(doorTheta) + 144.0)
+            
+            //println(theta)
         }
         println("clicked!")
     }
-    
+
     override func touchMoved(touch: CCTouch!, withEvent event: CCTouchEvent!) {
         if !gameOver {
             var points:Double = 568 / (4 * M_PI)
@@ -259,15 +359,27 @@ class MainScene: CCNode, CCPhysicsCollisionDelegate {
             defender.position.x = CGFloat(108 * cos(theta) + 184.0)
             defender.position.y = CGFloat(108 * sin(theta) + 144.0)
             
-            var attackerTheta = M_PI + theta
+            var attackerTheta = (1) * M_PI + theta
             attacker.position.x = CGFloat(108 * cos(attackerTheta) + 184.0)
             attacker.position.y = CGFloat(108 * sin(attackerTheta) + 144.0)
+            
+            var swordTheta = (1 / 2) * M_PI + theta
+            sword.position.x = CGFloat(108 * cos(swordTheta) + 184.0)
+            sword.position.y = CGFloat(108 * sin(swordTheta) + 144.0)
+            
+            var doorTheta = (3/2) * M_PI + theta
+            //println(door.position.x)
+            
+            door.position.x = CGFloat(108 * cos(doorTheta) + 184.0)
+            door.position.y = CGFloat(108 * sin(doorTheta) + 144.0)
+            
+            //println(theta)
         }
         
     }
     
     override func touchEnded(touch: CCTouch!, withEvent event: CCTouchEvent!) {
-        println("click ended")
+        
     }
     
 }

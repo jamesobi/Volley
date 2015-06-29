@@ -94,6 +94,7 @@
 		F008F4C61B3F9BFE000722F0 /* MainScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = F008F4C51B3F9BFD000722F0 /* MainScene.swift */; };
 		F008F4C81B3F9C3C000722F0 /* Projectile.swift in Sources */ = {isa = PBXBuildFile; fileRef = F008F4C71B3F9C3C000722F0 /* Projectile.swift */; };
 		F008F4EE1B40E1FE000722F0 /* GameOverScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = F008F4ED1B40E1FE000722F0 /* GameOverScene.swift */; };
+		F008F50A1B41DCE1000722F0 /* Menu.swift in Sources */ = {isa = PBXBuildFile; fileRef = F008F5091B41DCE1000722F0 /* Menu.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -214,6 +215,7 @@
 		F008F4C51B3F9BFD000722F0 /* MainScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MainScene.swift; path = Source/MainScene.swift; sourceTree = "<group>"; };
 		F008F4C71B3F9C3C000722F0 /* Projectile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Projectile.swift; path = Source/Projectile.swift; sourceTree = "<group>"; };
 		F008F4ED1B40E1FE000722F0 /* GameOverScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = GameOverScene.swift; path = Source/GameOverScene.swift; sourceTree = "<group>"; };
+		F008F5091B41DCE1000722F0 /* Menu.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Menu.swift; path = Source/Menu.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -437,6 +439,7 @@
 		B737893C1807616C0076A88C /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				F008F5091B41DCE1000722F0 /* Menu.swift */,
 				F008F4ED1B40E1FE000722F0 /* GameOverScene.swift */,
 				F008F4C51B3F9BFD000722F0 /* MainScene.swift */,
 				F008F4C71B3F9C3C000722F0 /* Projectile.swift */,
@@ -816,6 +819,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F008F50A1B41DCE1000722F0 /* Menu.swift in Sources */,
 				F008F4EE1B40E1FE000722F0 /* GameOverScene.swift in Sources */,
 				F008F4C81B3F9C3C000722F0 /* Projectile.swift in Sources */,
 				F008F4C61B3F9BFE000722F0 /* MainScene.swift in Sources */,
